@@ -1,25 +1,49 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { bindActionCreators } from "redux";
+
+import { actionCreators } from "./state/index";
+
+import axios from "axios";
+import "./App.css";
+import Home from "./screens/Home";
+import ViewState from "./screens/ViewState";
+import Header from "./components/Header";
 
 function App() {
+  const state = useSelector((state: any) => state.Covid);
+
+  const dispatch = useDispatch();
+
+  const { getGeneralReport, loader } = bindActionCreators(
+    actionCreators,
+    dispatch
+  );
+
+  useEffect(() => {
+    loader(true);
+
+    axios
+      .get(`https://covidnigeria.herokuapp.com/api`)
+      .then(async (response) => {
+        if (response.status === 200) {
+          getGeneralReport(response.data.data);
+        }
+        loader(false);
+      });
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <div className="container col-6 mx-auto d-flex flex-column justify-content-center align-items-center text-center">
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/:id/" element={<ViewState />} />
+        </Routes>{" "}
+      </div>
+    </>
   );
 }
 
